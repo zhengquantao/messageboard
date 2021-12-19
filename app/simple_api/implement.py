@@ -4,7 +4,7 @@ import string
 
 from flask import jsonify, request, session, redirect, url_for
 from sqlalchemy.sql.elements import or_
-from app.extentsions import db
+from app.extensions import db
 from app.models.models import UserInfo, MessageBoard, WxInfo
 from app.utils import api_response, check_email, check_phone, Redis
 

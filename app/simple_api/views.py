@@ -2,7 +2,7 @@
 import time
 
 from flask import Blueprint, request, render_template, redirect, session, url_for
-from app.extentsions import swagger
+from app.extensions import swagger
 from app.simple_api.implement import send_verification_code, get_message_with_page, insert_message, update_message, \
     delete_message, register_user, verify_login, perfect_user, wx_login
 from app.utils import api_response, captcha_img, login_required
