@@ -1,0 +1,30 @@
+version: '2'
+services:
+  db:
+    image: mysql:5.6
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: messageboard
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 123456
+
+  redis:
+    image: redis:3.2.1-alpine
+
+  web:
+    command: python manage.py runserver -h 0.0.0.0
+    build:
+      context: .
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - redis
+    links:
+      - db
+      - redis
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      SQLALCHEMY_DATABASE_URI: mysql+pymysql://root:123456@db/messageboard

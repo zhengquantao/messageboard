@@ -1,0 +1,40 @@
+image: $CI_REGISTRY/build/python:3.6
+
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  TEST_KUBE_REPLICAS: 1
+  TEST_KUBE_PROBE_HOST: q.test.dos.lixinchuxing.cn
+  PRODUCTION_KUBE_REPLICAS: 1
+  PRODUCTION_KUBE_PROBE_HOST: q.test.dos.lixinchuxing.cn
+
+codestyle:
+  stage: test
+  script:
+    - pip install flake8 black==19.10b0
+    - flake8
+    - black --check .
+
+security:
+  stage: test
+  script:
+    - pip install bandit importlib-metadata==4.6.4
+    - bandit -r app -lll --ini ./.bandit
+
+docker:build:
+  stage: docker
+  before_script:
+    - export DOCKER_IMAGE_NAME=$([ "$CI_COMMIT_REF_NAME" == "master" ] && echo "${CI_PROJECT_NAME}" || echo "${CI_PROJECT_NAME}-test")
+    - export DOCKER_IMAGE=${CI_REGISTRY_IMAGE}/${DOCKER_IMAGE_NAME}:${CI_COMMIT_SHA:0:8}
+    - echo $DOCKER_IMAGE
+  script:
+    - docker build --build-arg GIT_COMMIT=${CI_COMMIT_SHA:0:8} -t $DOCKER_IMAGE .
+    - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker push $DOCKER_IMAGE
+  only:
+    - branches
+  except:
+    - /^wip-.*$/

@@ -1,0 +1,253 @@
+definitions:
+  create_or_modify_cars:
+    type: object
+    properties:
+      plate_number:
+        type: string
+        validator: plate
+        description: 车牌
+      vin:
+        type: string
+        validator: vin
+        description: 车架
+      car_model_id:
+        type: integer
+        validator: car_model_id
+        description: 车型
+      car_model_name:
+        type: string
+        description: 车型名
+      license_issued_on:
+        type: string
+        validator: date
+        description: 首次上牌
+      mileage:
+        type: integer
+        description: 表显里程
+      displacement:
+        type: string
+        minLength: 1
+        description: 排量
+      gear_box:
+        type: string
+        description: 档位
+        enum:
+          - 手动
+          - 自动
+      emission_standard:
+        type: integer
+        validator: emission_standard
+        description: 排放标准
+      province:
+        type: string
+        description: 省份
+      province_code:
+        type: string
+        description: 省份代码
+      city:
+        type: string
+        description: 城市
+      city_code:
+        type: string
+        description: 城市代码
+      transfer_count:
+        type: integer
+        description: 过户次数
+      is_certified:
+        type: boolean
+        description: 是否认证二手车
+      price:
+        type: integer
+        description: 售价
+        minimum: 0
+        maximum: 1000000000
+        exclusiveMaximum: 1000000000
+      purchase_price:
+        type: integer
+        description: 新车价
+        minimum: 0
+        maximum: 1000000000
+        exclusiveMaximum: 1000000000
+      lightspot_note:
+        type: string
+        description: 车辆亮点
+        minLength: 1
+      selling_points:
+        type: array
+        description: 卖点
+        minItems: 0
+        maxItems: 4
+        uniqueItems: true
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+          required:
+            - id
+            - name
+      share_shelve:
+        type: boolean
+        description: 是否为共享车辆上架
+      original_mshop_id:
+        description: 车源所属店ID
+      original_mshop_car_id:
+        description: 车辆ID
+    required:
+      - plate_number
+      - vin
+      - car_model_id
+      - car_model_name
+      - license_issued_on
+      - mileage
+      - displacement
+      - gear_box
+      - emission_standard
+      - province
+      - province_code
+      - city
+      - city_code
+      - transfer_count
+      - is_certified
+      - price
+      - purchase_price
+      - lightspot_note
+      - selling_points
+
+verification_code:
+  summary: 发送验证码
+  tags:
+    - API
+  parameters:
+    -
+      name: body
+      in: body
+      required: true
+      schema:
+        type: object
+        properties:
+          mobile:
+            type: string
+            description: 手机号
+            minLength: 11
+            maxLength: 15
+            error: 请写手机好
+          captcha:
+            type: string
+            description: 图片验证码
+            minLength: 4
+            maxLength: 4
+            error: 请输入验证码
+        required:
+          - mobile
+          - captcha
+  responses:
+    '200':
+      schema:
+        properties:
+          code:
+            type: integer
+            description: 返回码
+            example: 0
+          message:
+            type: string
+            description: 返回字符串描述
+            example: ok
+
+messages:
+  summary: 更改留言
+  tags:
+    - API
+  parameters:
+    -   name: msg_id
+        in: path
+        type: integer
+        description: 信息ID
+        required: true
+    -
+      name: message
+      in: formData
+      type: string
+      description: 留言信息
+      required: true
+  responses:
+    '200':
+      schema:
+        properties:
+          code:
+            type: integer
+            description: 返回码
+            example: 0
+          message:
+            type: string
+            description: 返回字符串描述
+            example: ok
+
+del_message:
+  summary: 删除留言信息
+  tags:
+    - API
+  parameters:
+    -
+      name: msg_id
+      in: path
+      required: true
+      type: integer
+      description: 留言ID
+  responses:
+    '200':
+      schema:
+        properties:
+          code:
+            type: integer
+            description: 返回码
+            example: 0
+          message:
+            type: string
+            description: 返回字符串描述
+            example: ok
+
+
+captcha:
+  summary: 更新图片验证码
+  tags:
+    - API
+  responses:
+    '200':
+      schema:
+        properties:
+          code:
+            type: integer
+            description: 返回码
+            example: 0
+            message:
+              type: string
+              description: 返回字符串描述
+              example: ok
+
+
+wx_login_callback:
+  summary: 微信回調
+  tags:
+    - API
+  parameters:
+    - name: code
+      in: query
+      required: true
+      type: string
+      description: 用户CODE
+      error: 参数缺失
+  responses:
+    '200':
+      schema:
+        properties:
+          code:
+            type: integer
+            description: 返回码
+            example: 0
+          message:
+            type: string
+            description: 返回字符串描述
+            example: ok
