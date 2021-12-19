@@ -1,20 +1,19 @@
 from flask import Flask, make_response, jsonify
 
+from app.app import register_blueprints, register_logging, register_extensions, register_config
 from app.config import dev
-from flask_wtf.csrf import CSRFProtect
 
-from app.extentsions import db, swagger
 from app.handle_exceptions import register_error_handlers
-
-csrf = CSRFProtect()
 
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(dev.Config)  # 导入配置文件
-    csrf.init_app(app)
-    db.init_app(app)
-    swagger.init_app(app)
+
+    register_config(app)
+
+    register_logging(app)
+
+    register_extensions(app)
 
     # @app.after_request
     # def after_request(response):
@@ -26,8 +25,6 @@ def create_app():
     #             response.headers['Access-Control-Allow-Headers'] = headers
     #     return response
     register_error_handlers(app)
-    from app import simple_api
-    app.register_blueprint(simple_api.views.html_page)
-    app.register_blueprint(simple_api.views.api)
+    register_blueprints(app)
 
     return app
