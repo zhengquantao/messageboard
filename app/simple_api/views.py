@@ -1,8 +1,8 @@
 # -- coding: utf-8 --
-import time
+import io
 
-from flask import Blueprint, request, render_template, redirect, session, url_for
-from app.extensions import swagger
+from flask import Blueprint, request, render_template, redirect, session, url_for, send_file
+# from app.extensions import swagger
 from app.simple_api.implement import send_verification_code, get_message_with_page, insert_message, update_message, \
     delete_message, register_user, verify_login, perfect_user, wx_login
 from app.utils import api_response, captcha_img, login_required
@@ -16,9 +16,8 @@ html_page = Blueprint('html_page', __name__, url_prefix="/", template_folder="..
 @html_page.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        session["captcha"] = captcha_img()
-        img = "/v1/static/captcha/code.jpg?" + str(int(time.time()))
-        return render_template("pages/login.html", img=img)
+
+        return render_template("pages/login.html")
     else:
         return verify_login(request.form)
 
@@ -56,7 +55,7 @@ def logout():
 
 
 @html_page.route("/messages/<msg_id>", methods=["PUT"])
-@swagger.doc("simple_api.yml#/messages")
+# @swagger.doc("simple_api.yml#/messages")
 @login_required
 def change_message(msg_id):
     user = session.get("user")
@@ -67,9 +66,7 @@ def change_message(msg_id):
 @html_page.route("/reg/", methods=["GET", "POST"])
 def register():
     if request.method == "GET":
-        session["captcha"] = captcha_img()
-        img = "/v1/static/captcha/code.jpg?"+str(int(time.time()))
-        return render_template("pages/reg.html", img=img)
+        return render_template("pages/reg.html")
     else:
         data_form = request.form
         register_user(data_form)
@@ -77,14 +74,20 @@ def register():
 
 
 @api.route("/captcha/", methods=["GET"])
-@swagger.doc("simple_api.yml#/captcha")
+# @swagger.doc("simple_api.yml#/captcha")
 def captcha():
-    session["captcha"] = captcha_img()
-    return api_response()
+    stream, code = captcha_img()
+    session["captcha"] = code
+    return send_file(
+        io.BytesIO(stream.getvalue()),
+        mimetype='image/png',
+        as_attachment=False,
+        attachment_filename='result.jpg'
+    )
 
 
 @api.route("/verification_code", methods=["POST"])
-@swagger.doc("simple_api.yml#/verification_code")
+# @swagger.doc("simple_api.yml#/verification_code")
 def verification_code():
     mobile = request.json.get("mobile")
     captcha = request.json.get("captcha")
@@ -93,7 +96,7 @@ def verification_code():
 
 
 @api.route("/messages/<msg_id>", methods=["DELETE"])
-@swagger.doc("simple_api.yml#/del_message")
+# @swagger.doc("simple_api.yml#/del_message")
 @login_required
 def del_messages(msg_id):
     user = session.get("user")
@@ -102,7 +105,7 @@ def del_messages(msg_id):
 
 
 @html_page.route("/", methods=["GET"])
-@swagger.doc("simple_api.yml#/wx_login_callback")
+# @swagger.doc("simple_api.yml#/wx_login_callback")
 def wx_login_callback():
     code = request.args.get("code")
     response = wx_login(code)

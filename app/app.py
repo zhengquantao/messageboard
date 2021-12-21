@@ -9,10 +9,10 @@ def register_extensions(app, param=None):
     :param app:
     :return:
     """
-    from app.extensions import db, swagger, csrf
+    from app.extensions import db, csrf
     csrf.init_app(app)
     db.init_app(app)
-    swagger.init_app(app)
+    # swagger.init_app(app)
 
 
 def register_logging(app, param=None):

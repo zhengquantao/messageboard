@@ -2,11 +2,12 @@ import os
 
 
 class Config(object):
+    DEBUG = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI") or "mysql+pymysql://root:123456@localhost:3306/messageboard?charset=utf8mb4"
+    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", "mysql+pymysql://root:123456@localhost:3306/messageboard?charset=utf8mb4")
     SQLALCHEMY_ECHO = False
     SECRET_KEY = "messageboardingxxxeee"
-    REDIS_URL = os.getenv("REDIS_URL") or "redis://127.0.0.1:6379/0"
+    REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
     SWAGGER = {
         "doc_root": "../doc/",
         "domain": "http://127.0.0.1:5000",

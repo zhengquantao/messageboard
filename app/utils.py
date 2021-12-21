@@ -1,4 +1,6 @@
 import re
+from io import BytesIO
+
 import redis
 from flask import jsonify, session, redirect, url_for
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -24,7 +26,7 @@ def captcha_img():
     width = 240  # 宽
     height = 60  # 高
     image = Image.new("RGB", (width, height), (255, 255, 255))
-    font = ImageFont.truetype("static/DejaVuSerif.ttf", 36)  # font对象
+    font = ImageFont.truetype("static/arial.ttf", 36)  # font对象
     draw = ImageDraw.Draw(image)  # 创建Draw对象
     for x in range(width):  # 填充像素
         # for y in range(30, random.randint(20, 40)):
@@ -32,8 +34,9 @@ def captcha_img():
     for w in range(4):  # 输出文字
         draw.text((60*w + 10, 10), num[w], font=font, fill=color2())
     image = image.filter(ImageFilter.DETAIL)
-    image.save('static/captcha/code.jpg')
-    return ''.join(num)
+    stream = BytesIO()
+    image.save(stream, "png")
+    return stream, ''.join(num)
 
 
 def login_required(func):
