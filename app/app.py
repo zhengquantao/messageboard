@@ -10,9 +10,17 @@ def register_extensions(app, param=None):
     :return:
     """
     from app.extensions import db, csrf
+    _init_redis(app)
     csrf.init_app(app)
     db.init_app(app)
     # swagger.init_app(app)
+
+
+def _init_redis(app, param=None):
+    import redis
+    from app import extensions as ext
+    redis_obj = redis.StrictRedis().from_url(app.config.REDIS_URL)
+    ext.redis = redis_obj
 
 
 def register_logging(app, param=None):
