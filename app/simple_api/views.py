@@ -2,16 +2,15 @@
 import io
 
 from flask import Blueprint, request,  session,  send_file
-# from app.extensions import swagger
 from app.simple_api.implement import send_verification_code, delete_message
 from app.utils import api_response, captcha_img, login_required
-
+from flasgger import swag_from
 
 api = Blueprint('api', __name__, url_prefix="/v1", static_folder="../../static")
 
 
 @api.route("/captcha/", methods=["GET"])
-# @swagger.doc("simple_api.yml#/captcha")
+@swag_from("doc/simple_api.yml")
 def captcha():
     stream, code = captcha_img()
     session["captcha"] = code
@@ -24,7 +23,7 @@ def captcha():
 
 
 @api.route("/verification_code", methods=["POST"])
-# @swagger.doc("simple_api.yml#/verification_code")
+@swag_from("doc/simple_api.yml")
 def verification_code():
     mobile = request.json.get("mobile")
     captcha = request.json.get("captcha")
@@ -33,7 +32,7 @@ def verification_code():
 
 
 @api.route("/messages/<msg_id>", methods=["DELETE"])
-# @swagger.doc("simple_api.yml#/del_message")
+@swag_from("doc/simple_api.yml")
 @login_required
 def del_messages(msg_id):
     user = session.get("user")
