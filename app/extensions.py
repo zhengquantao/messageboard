@@ -4,7 +4,7 @@ from flasgger import Swagger
 
 db = SQLAlchemy()
 
-swagger = Swagger
+swagger = Swagger()
 
 csrf = CSRFProtect()
 

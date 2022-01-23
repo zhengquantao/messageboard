@@ -11,10 +11,9 @@ def register_extensions(app, param=None):
     """
     from app.extensions import db, csrf, swagger
     _init_redis(app)
+    swagger.init_app(app)
     csrf.init_app(app)
     db.init_app(app)
-    swagger(app)
-    # swagger.init_app(app)
 
 
 def _init_redis(app, param=None):

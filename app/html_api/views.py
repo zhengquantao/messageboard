@@ -7,7 +7,7 @@ from app.utils import login_required
 from app.models.models import UserInfo, MessageBoard, WxInfo
 from app.utils import api_response, check_email, check_phone, Redis
 
-html_page = Blueprint('html_page', __name__, url_prefix="/", template_folder="../../templates")
+html_page = Blueprint('html_page', __name__, url_prefix="/views", template_folder="../../templates")
 
 
 @html_page.route("/login", methods=["GET", "POST"])
