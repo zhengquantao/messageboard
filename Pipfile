@@ -15,7 +15,6 @@ Flask-WTF = "==1.0.0"
 Pillow = "==5.4.1"
 PyMySQL = "==1.0.2"
 SQLAlchemy = "==1.4.27"
-flask-swagger = {ref = "v1.1.20", git = "ssh://git@gitlab.lixinio.com/common/flask-swagger.git"}
 
 [dev-packages]
 

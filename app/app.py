@@ -9,10 +9,18 @@ def register_extensions(app, param=None):
     :param app:
     :return:
     """
-    from app.extensions import db, swagger, csrf
+    from app.extensions import db, csrf, swagger
+    _init_redis(app)
+    swagger.init_app(app)
     csrf.init_app(app)
     db.init_app(app)
-    swagger.init_app(app)
+
+
+def _init_redis(app, param=None):
+    import redis
+    from app import extensions as ext
+    redis_obj = redis.StrictRedis().from_url(app.config["REDIS_URL"])
+    ext.redis = redis_obj
 
 
 def register_logging(app, param=None):
@@ -51,4 +59,6 @@ def register_blueprints(app, param=None):
     """
     from app import simple_api
     app.register_blueprint(simple_api.views.api)
-    app.register_blueprint(simple_api.views.html_page)
+
+    from app import html_api
+    app.register_blueprint(html_api.views.html_page)
