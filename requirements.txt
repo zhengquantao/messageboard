@@ -9,5 +9,7 @@ redis==4.0.2
 SQLAlchemy==1.4.27
 virtualenv==20.10.0
 gunicorn==20.0.4
+flask-migrate==2.7.0
+pymysql==1.0.2
 
 

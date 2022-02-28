@@ -44,8 +44,7 @@ def login_required(func):
     def wrapper(*args, **kwargs):
         if not session.get("user"):
             return redirect(url_for("html_page.login"))
-        r = func(*args, **kwargs)
-        return r
+        return func(*args, **kwargs)
     return wrapper
 
 

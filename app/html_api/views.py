@@ -3,11 +3,12 @@ from sqlalchemy import or_
 
 from app.extensions import db
 from app.simple_api.implement import update_message, insert_message
+from app.sql import general_create, query_one, query_all
 from app.utils import login_required
 from app.models.models import UserInfo, MessageBoard, WxInfo
 from app.utils import api_response, check_email, check_phone, Redis
 
-html_page = Blueprint('html_page', __name__, url_prefix="/views", template_folder="../../templates")
+html_page = Blueprint('html_page', __name__, url_prefix="/", template_folder="../../templates")
 
 
 @html_page.route("/login", methods=["GET", "POST"])
@@ -61,19 +62,18 @@ def users():
         if not check_email(email) or not check_phone(mobile):
             return redirect(url_for("html_page.users"))
 
-        if all([mobile, email, username, verification_code]):
-            obj = UserInfo(mobile=mobile, email=email, username=username)
-            db.session.add(obj)
-            db.session.flush()
-            wx_obj = db.session.query(WxInfo).filter(WxInfo.id == wx_id).first()
-            wx_obj.user_id = obj.id
-            db.session.commit()
-            session["user"] = obj.id
-            session["name"] = username
-            return redirect(url_for("html_page.messages"))
-        else:
+        if not all([mobile, email, username, verification_code]):
             # 缺失参数
             return redirect(url_for("html_page.users"))
+
+        obj = UserInfo(mobile=mobile, email=email, username=username)
+        db.session.flush()
+        wx_obj = db.session.query(WxInfo).filter(WxInfo.id == wx_id).first()
+        wx_obj.user_id = obj.id
+        db.session.commit()
+        session["user"] = obj.id
+        session["name"] = username
+        return redirect(url_for("html_page.messages"))
 
 
 @html_page.route("/logout", methods=["GET"])
@@ -82,12 +82,11 @@ def logout():
     return redirect(url_for("html_page.login"))
 
 
-@html_page.route("/messages/<msg_id>", methods=["PUT"])
+@html_page.route("/messages/<int:msg_id>", methods=["PUT"])
 # @swagger.doc("simple_api.yml#/messages")
 @login_required
 def change_message(msg_id):
-    user = session.get("user")
-    update_message(user, request.form.get("message"), int(msg_id))
+    update_message(session.get("user"), request.form.get("message"), msg_id)
     return redirect(url_for("html_page.messages"))
 
 
@@ -105,11 +104,10 @@ def register():
             user_obj = db.session.query(UserInfo).filter(
                 or_(UserInfo.mobile == mobile, UserInfo.email == email)).first()
             # 用户存在
-            if user_obj:
-                obj = UserInfo(mobile=mobile, email=email, username=username)
-                db.session.add(obj)
+            if not user_obj:
+                general_create(UserInfo, {"mobile": mobile, "email": email, "username": username})
                 db.session.commit()
-                return redirect(url_for("html_page.login"))
+            return redirect(url_for("html_page.login"))
 
         return redirect(url_for("html_page.register"))
 
@@ -123,29 +121,28 @@ def wx_login_callback():
 
 
 def get_message_with_page(page=1, size=20):
-    #data = db.session.query(MessageBoard).offset(int(int(page)-1)*int(size)).limit(size).all()
     try:
-        message = db.session.query(MessageBoard)
-        data = message.filter(MessageBoard.id>=message.with_entities(MessageBoard.id).offset(int(int(page)-1)*int(size)).limit(1).first()).limit(size).all()
+        data = query_all(MessageBoard, {}, page=page, count=size)
     except:
         data = api_response(code=404, message="Not Found")
     return data
 
 
 def wx_login(code):
-    if code:
-        wx_obj = db.session.query(WxInfo).filter(WxInfo.wx_code==code).first()
-        # 不存在增加用户
-        if not wx_obj:
-            wx_obj = WxInfo(wx_code=code)
-            db.session.add(wx_obj)
-            db.session.commit()
-        if not wx_obj.user_id:
-            # 补充完整信息
-            session["wx"] = wx_obj.id
-            return redirect(url_for("html_page.users"))
-        session["user"] = wx_obj.id
-        session["name"] = wx_obj.user
-        return redirect(url_for("html_page.messages"))
-    else:
+    if not code:
         return redirect(url_for("html_page.login"))
+    
+    wx_obj = query_one(WxInfo, {"wx_code": code})
+    # 不存在增加用户
+    if not wx_obj:
+        wx_obj = general_create(WxInfo, {"wx_code": code})
+        db.session.commit()
+
+    if not wx_obj.user_id:
+        # 补充完整信息
+        session["wx"] = wx_obj.id
+        return redirect(url_for("html_page.users"))
+    
+    session["user"] = wx_obj.id
+    session["name"] = wx_obj.user
+    return redirect(url_for("html_page.messages"))

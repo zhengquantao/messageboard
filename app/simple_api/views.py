@@ -2,15 +2,16 @@
 import io
 
 from flask import Blueprint, request,  session,  send_file
+# from app.extensions import swagger
 from app.simple_api.implement import send_verification_code, delete_message
-from app.utils import api_response, captcha_img, login_required
-from flasgger import swag_from
+from app.utils import captcha_img, login_required
+
 
 api = Blueprint('api', __name__, url_prefix="/v1", static_folder="../../static")
 
 
 @api.route("/captcha/", methods=["GET"])
-@swag_from("doc/simple_api.yml")
+# @swagger.doc("simple_api.yml#/captcha")
 def captcha():
     stream, code = captcha_img()
     session["captcha"] = code
@@ -23,18 +24,17 @@ def captcha():
 
 
 @api.route("/verification_code", methods=["POST"])
-@swag_from("doc/simple_api.yml")
+# @swagger.doc("simple_api.yml#/verification_code")
 def verification_code():
-    mobile = request.json.get("mobile")
-    captcha = request.json.get("captcha")
-    response = send_verification_code(request.json)
-    return response
+    return send_verification_code(request.json)
 
 
-@api.route("/messages/<msg_id>", methods=["DELETE"])
-@swag_from("doc/simple_api.yml")
+@api.route("/messages/<int:msg_id>", methods=["DELETE"])
+# @swagger.doc("simple_api.yml#/del_message")
 @login_required
 def del_messages(msg_id):
-    user = session.get("user")
-    delete_message(user, int(msg_id))
-    return api_response()
+    filters = {
+        "user_id": session.get("user"),
+        "id": msg_id,
+    }
+    return delete_message(filters)

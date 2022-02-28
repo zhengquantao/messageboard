@@ -3,10 +3,10 @@ import random
 import string
 
 from flask import jsonify, request, session, redirect, url_for
-from sqlalchemy.sql.elements import or_
 from app.extensions import db
-from app.models.models import UserInfo, MessageBoard, WxInfo
-from app.utils import api_response, check_email, check_phone, Redis
+from app.models.models import MessageBoard
+from app.sql import query_one, general_edit, general_create
+from app.utils import api_response, Redis
 
 
 def send_verification_code(data_json):
@@ -22,39 +22,28 @@ def send_verification_code(data_json):
 
 
 def insert_message(user_id, content):
-    if user_id and content:
-        msg_obj = MessageBoard(user_id=user_id, content=content)
-        db.session.add(msg_obj)
-        db.session.commit()
-    else:
-        pass
+    if not (user_id and content):
+        return
+    general_create(MessageBoard, {"user_id": user_id, "content": content})
+    db.session.commit()
 
 
-def update_message(user_id, content, msg_id):
+def update_message(user_id, content, msg_id) -> None:
     if not (user_id and content and msg_id):
         return api_response(code=500, message="data not empty")
-    msg_obj = db.session.query(MessageBoard).filter(MessageBoard.id==msg_id).first()
+    msg_obj = query_one(MessageBoard, {"id": msg_id, "user_id": user_id})
     if msg_obj:
-        if user_id == msg_obj.user_id:
-            msg_obj.content = content
-            db.session.add(msg_obj)
-            db.session.commit()
-        else:
-            pass
-    else:
-        pass
+        return api_response(code=404, message="not found")
+    general_edit(msg_obj, {"content": content})
+    db.session.commit()
 
 
-def delete_message(user_id, msg_id):
-    if not (user_id and msg_id):
-        return api_response(code=500, message="not user_id or not msg_id")
-    msg_obj = db.session.query(MessageBoard).filter(MessageBoard.id == msg_id).first()
-    if msg_obj:
-        if user_id == msg_obj.user_id:
-            db.session.delete(msg_obj)
-            db.session.commit()
-        else:
-            pass
-    else:
-        pass
+def delete_message(filters: dict) -> jsonify:
+    msg_obj = query_one(MessageBoard, filters)
+    if not msg_obj:
+        return api_response(code=404, message="not found")
+    db.session.delete(msg_obj)
+    db.session.commit()
+    return api_response()
+
 
